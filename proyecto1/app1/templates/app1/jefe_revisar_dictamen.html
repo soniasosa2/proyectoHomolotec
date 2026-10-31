@@ -1,0 +1,189 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Revisar Dictamen de Homologación{% endblock titulo %}
+
+{% block usuario_header %}
+    <div class="text-end">
+        <span class="d-block fw-bold text-white" style="font-size: 0.9rem;">Jefe de Carrera</span>
+        <a href="{% url 'cerrar_sesion' %}" class="text-white text-opacity-75 text-decoration-none" style="font-size: 0.8rem;">
+            Cerrar sesión
+        </a>
+    </div>
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    .sidebar-nav {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 10px 18px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    .sidebar-link.active {
+        background-color: #e6f4f2;
+        color: #107c72;
+        font-weight: 700;
+    }
+    .card-dictamen {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 24px;
+    }
+    /* Estilos cuando se selecciona cada botón de acción */
+    .btn-check:checked + .btn-accion-aprobar {
+        background-color: #e6f4f2 !important;
+        border-color: #107c72 !important;
+        color: #107c72 !important;
+        font-weight: 700;
+    }
+    .btn-check:checked + .btn-accion-corregir {
+        background-color: #fef2f2 !important;
+        border-color: #ef4444 !important;
+        color: #dc2626 !important;
+        font-weight: 700;
+    }
+    .btn-accion {
+        padding: 14px 20px;
+        border-radius: 10px;
+        border: 2px solid #cbd5e1;
+        background-color: #ffffff;
+        color: #475569;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-accion:hover {
+        border-color: #94a3b8;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row g-4">
+
+    <!-- COLUMNA IZQUIERDA: MENÚ JEFE DE CARRERA -->
+    <div class="col-12 col-lg-3">
+        <div class="sidebar-nav shadow-sm d-flex flex-row flex-lg-column gap-2 overflow-auto">
+            <a href="{% url 'jefe_pendientes' %}" class="sidebar-link">Pendientes</a>
+            <a href="{% url 'jefe_dictamenes' %}" class="sidebar-link active">Revisar dictámenes</a>
+            <a href="{% url 'jefe_historial' %}" class="sidebar-link">Historial</a>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: REVISIÓN DE DICTAMEN (PANTALLA 11 / CU006) -->
+    <div class="col-12 col-lg-9">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} py-2 mb-3" style="font-size: 0.9rem;" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="text-start mb-4">
+            <h2 class="fw-bold text-dark mb-1">Revisar dictamen</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                {{ solicitud.numero_tramite }} - {{ solicitud.get_estado_display }}
+            </p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="card-homolotec shadow-sm p-4 text-start mb-4">
+
+                <!-- TARJETA: DICTAMEN DEL PROFESOR -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">Dictamen del profesor</h5>
+                    {% if materia_solicitada.resultado_dictamen == 'APROBADA' %}
+                        <span class="badge-estado badge-aprobada">Aprobada</span>
+                    {% elif materia_solicitada.resultado_dictamen == 'RECHAZADA' %}
+                        <span class="badge-estado badge-rechazada">Rechazada</span>
+                    {% else %}
+                        <span class="badge-estado badge-pendiente">Pendiente</span>
+                    {% endif %}
+                </div>
+
+                <div class="card-dictamen mb-4">
+                    <div class="mb-3">
+                        <span class="text-muted small d-block">Profesor evaluador</span>
+                        <strong class="text-dark fs-6">
+                            {{ materia_solicitada.profesor_evaluador.nombre_apellido|default:"Martín Gómez" }}
+                        </strong>
+                        <span class="text-muted ms-2 small">({{ materia_solicitada.materia.nombre }})</span>
+                    </div>
+
+                    <div>
+                        <span class="text-muted small d-block mb-1">Fundamentación académica</span>
+                        <p class="text-dark mb-0" style="line-height: 1.6;">
+                            {{ materia_solicitada.fundamentacion_profesor|default:"Los contenidos mínimos, la carga horaria y la bibliografía son equivalentes a los establecidos para la materia institucional." }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: ACCIÓN DEL JEFE DE CARRERA -->
+                <h5 class="fw-bold text-dark mb-3">Acción del Jefe de Carrera</h5>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-6">
+                        <input type="radio" class="btn-check" name="accion" id="accionAprobar" value="aprobar" checked>
+                        <label class="btn-accion btn-accion-aprobar d-block text-center w-100" for="accionAprobar">
+                            <i class="bi bi-check-circle me-1"></i> APROBAR DICTAMEN
+                        </label>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <input type="radio" class="btn-check" name="accion" id="accionCorregir" value="corregir">
+                        <label class="btn-accion btn-accion-corregir d-block text-center w-100" for="accionCorregir">
+                            <i class="bi bi-exclamation-triangle me-1"></i> SOLICITAR CORRECCIÓN
+                        </label>
+                    </div>
+                </div>
+
+                <!-- OBSERVACIONES OBLIGATORIAS SI SOLICITA CORRECCIÓN -->
+                <div class="mb-4">
+                    <label class="form-label">
+                        Observaciones (obligatorias si solicita corrección)
+                    </label>
+                    <textarea name="observaciones" id="observaciones" rows="4" class="form-control" placeholder="Escriba aquí las indicaciones para el profesor">{{ materia_solicitada.observaciones_jefe_carrera|default:'' }}</textarea>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN -->
+                <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                    <a href="{% url 'jefe_dictamenes' %}" class="btn btn-outline-secondary px-4">
+                        CANCELAR
+                    </a>
+                    <button type="submit" class="btn btn-teal px-4">
+                        CONFIRMAR
+                    </button>
+                </div>
+
+                <div class="mt-3 text-muted" style="font-size: 0.82rem;">
+                    Al confirmar un cambio de estado, se enviará un email automático al alumno.
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+</div>
+{% endblock contenido %}

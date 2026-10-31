@@ -12,12 +12,19 @@ urlpatterns = [
     path('solicitud-confirmacion/<int:solicitud_id>/', views.solicitud_confirmacion, name='solicitud_confirmacion'),
     path('solicitud/<int:solicitud_id>/', views.detalle_solicitud, name='detalle_solicitud'),
     
-        # Secretaría
+    # Secretaría
     path('secretaria/', views.secretaria_dashboard, name='secretaria_dashboard'),
     path('secretaria/solicitudes/', views.secretaria_solicitudes, name='secretaria_solicitudes'),
     path('secretaria/recibir/', views.secretaria_recibir, name='secretaria_recibir'),
     path('secretaria/recibir/<int:solicitud_id>/', views.secretaria_recibir, name='secretaria_recibir_detalle'),
     
+    # Jefe de Carrera (CU004, CU006, CU008)
+    path('jefe-carrera/', views.jefe_pendientes, name='jefe_pendientes'),
+    path('jefe-carrera/asignar/<int:solicitud_id>/', views.jefe_asignar, name='jefe_asignar'),
+    path('jefe-carrera/revisar-dictamenes/', views.jefe_dictamenes, name='jefe_dictamenes'),
+    path('jefe-carrera/revisar-dictamen/<int:solicitud_id>/', views.jefe_revisar_dictamen, name='jefe_revisar_dictamen'),
+    path('jefe-carrera/historial/', views.jefe_historial, name='jefe_historial'),
+
     # Activación de Cuenta
     path('activar-cuenta/', views.activar_cuenta, name='activar_cuenta'),
     path('verificar-codigo/', views.verificar_codigo, name='verificar_codigo'),

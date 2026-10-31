@@ -72,6 +72,7 @@ class SolicitudHomologacion(models.Model):
         ('DOCUMENTACION_RECIBIDA', 'Documentación recibida'),
         ('PROFESOR_ASIGNADO', 'Profesor asignado'),
         ('EN_EVALUACION', 'En evaluación'),
+        ('EVALUACION_FINALIZADA', 'Evaluación finalizada'),
         ('CORRECCION_SOLICITADA', 'Corrección solicitada'),
         ('DICTAMEN_APROBADO', 'Dictamen aprobado'),
         ('HOMOLOGACION_APROBADA', 'Homologación aprobada'),

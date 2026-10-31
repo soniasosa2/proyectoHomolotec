@@ -89,6 +89,10 @@
                 <a href="{% url 'secretaria_recibir' %}" class="sidebar-link">Recibir solicitud</a>
                 <a href="#" class="sidebar-link">Registrar resolución</a>
                 <a href="{% url 'secretaria_solicitudes' %}" class="sidebar-link active">Solicitudes</a>
+               {% elif request.user.perfil.rol == 'JEFE_CARRERA' %}
+                <a href="{% url 'jefe_pendientes' %}" class="sidebar-link">Pendientes</a>
+                <a href="{% url 'jefe_dictamenes' %}" class="sidebar-link">Revisar dictámenes</a>
+                <a href="{% url 'jefe_historial' %}" class="sidebar-link active">Historial</a>
             {% endif %}
         </div>
     </div>
@@ -229,6 +233,8 @@
                     <a href="{% url 'panel_alumno' %}" class="btn btn-teal px-4">VOLVER</a>
                 {% elif request.user.perfil.rol == 'SECRETARIA' %}
                     <a href="{% url 'secretaria_solicitudes' %}" class="btn btn-teal px-4">VOLVER</a>
+                 {% elif request.user.perfil.rol == 'JEFE_CARRERA' %}
+                    <a href="{% url 'jefe_historial' %}" class="btn btn-teal px-4">VOLVER</a>
                 {% endif %}
             </div>
 

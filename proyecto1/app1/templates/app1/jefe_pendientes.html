@@ -1,0 +1,188 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Jefe de Carrera - Solicitudes Pendientes{% endblock titulo %}
+
+{% block usuario_header %}
+    <div class="text-end">
+        <span class="d-block fw-bold text-white" style="font-size: 0.9rem;">Jefe de Carrera</span>
+        <a href="{% url 'cerrar_sesion' %}" class="text-white text-opacity-75 text-decoration-none" style="font-size: 0.8rem;">
+            Cerrar sesión
+        </a>
+    </div>
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    .sidebar-nav {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 10px 18px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    .sidebar-link.active {
+        background-color: #e6f4f2;
+        color: #107c72;
+        font-weight: 700;
+    }
+    .table-homolotec th {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        color: #64748b;
+        padding: 16px 14px;
+        border-bottom: 1px solid #e2e8f0 !important;
+        white-space: nowrap;
+    }
+    .table-homolotec td {
+        padding: 16px 14px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.92rem;
+    }
+    .table-homolotec tbody tr:hover {
+        background-color: #f8fafc;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row g-4">
+
+    <!-- COLUMNA IZQUIERDA: MENÚ JEFE DE CARRERA -->
+    <div class="col-12 col-lg-3">
+        <div class="sidebar-nav shadow-sm d-flex flex-row flex-lg-column gap-2 overflow-auto">
+            <a href="{% url 'jefe_pendientes' %}" class="sidebar-link active">Pendientes</a>
+            <a href="{% url 'jefe_dictamenes' %}" class="sidebar-link">Revisar dictámenes</a>
+            <a href="{% url 'jefe_historial' %}" class="sidebar-link">Historial</a>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: SOLICITUDES PENDIENTES (PANTALLA 9 A / CU004) -->
+    <div class="col-12 col-lg-9">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} py-2 mb-3" style="font-size: 0.9rem;" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="text-start mb-4">
+            <h2 class="fw-bold text-dark mb-1">Solicitudes pendientes</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                Vista inicial: solicitudes de tu carrera con profesor o programa de estudio por asignar.
+            </p>
+        </div>
+
+        <!-- Buscador y Filtros -->
+        <div class="card-homolotec shadow-sm p-4 mb-4 text-start">
+            <form method="GET" action="{% url 'jefe_pendientes' %}">
+                <div class="row g-3 align-items-end">
+                    
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Buscar por trámite, alumno o materia</label>
+                        <input type="text" name="q" value="{{ busqueda }}" class="form-control" placeholder="Ingresá un número, nombre o materia">
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Falta completar</label>
+                        <select name="falta" class="form-select">
+                            <option value="todos" {% if filtro_falta == 'todos' %}selected{% endif %}>Todos los pendientes</option>
+                            <option value="profesor_y_programa" {% if filtro_falta == 'profesor_y_programa' %}selected{% endif %}>Profesor y programa</option>
+                            <option value="programa" {% if filtro_falta == 'programa' %}selected{% endif %}>Programa de estudio</option>
+                            <option value="profesor" {% if filtro_falta == 'profesor' %}selected{% endif %}>Profesor evaluador</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-teal w-100">
+                            BUSCAR
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla: Pendientes de asignación -->
+        <div class="card-homolotec shadow-sm p-4 text-start">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">Pendientes de asignación</h5>
+                <span class="text-muted" style="font-size: 0.85rem;">{{ total_pendientes }} trámites</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-homolotec align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>TRÁMITE</th>
+                            <th>ALUMNO</th>
+                            <th>MATERIA</th>
+                            <th>FALTA COMPLETAR</th>
+                            <th class="text-end">ACCIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items_pendientes %}
+                            <tr>
+                                <td class="fw-bold text-dark">
+                                    {{ item.solicitud.numero_tramite }}
+                                </td>
+                                <td>
+                                    {{ item.solicitud.alumno.nombre_apellido }}
+                                </td>
+                                <td>
+                                    {{ item.materia_solicitada.materia.nombre }}
+                                </td>
+                                <td>
+                                    <span class="badge-estado {{ item.falta_badge }}">
+                                        {{ item.falta_label }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'jefe_asignar' item.solicitud.id %}" class="btn btn-teal btn-sm px-3 py-1">
+                                        COMPLETAR
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    No hay solicitudes pendientes de asignación en este momento.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-muted" style="font-size: 0.85rem;">
+                <p class="mb-0">
+                    La solicitud permanece aquí hasta completar la asignación de todas sus materias.<br>
+                    Cuando ya tiene profesor y programa, se consulta desde <strong>Historial</strong>.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock contenido %}

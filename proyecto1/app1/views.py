@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q
-from .models import PerfilUsuario, SolicitudHomologacion, Materia, MateriaSolicitada
+from .models import PerfilUsuario, SolicitudHomologacion, Materia, MateriaSolicitada, ProgramaAcademico
 
 # ========================================================
 # PANTALLA 1: INICIAR SESIÓN (LOGIN INTELIGENTE POR ROL)
@@ -18,6 +18,10 @@ def index(request):
             return redirect('panel_alumno')
         elif request.user.perfil.rol == 'SECRETARIA':
             return redirect('secretaria_dashboard')
+        elif request.user.perfil.rol == 'JEFE_CARRERA':
+            return redirect('jefe_pendientes')
+        elif request.user.perfil.rol == 'PROFESOR':
+            return redirect('profesor_inicio')
 
     if request.method == 'POST':
         correo = request.POST.get('correo', '').strip()
@@ -33,6 +37,10 @@ def index(request):
                     return redirect('panel_alumno')
                 elif user.perfil.rol == 'SECRETARIA':
                     return redirect('secretaria_dashboard')
+                elif user.perfil.rol == 'JEFE_CARRERA':
+                    return redirect('jefe_pendientes')
+                elif user.perfil.rol == 'PROFESOR':
+                    return redirect('profesor_inicio')
             return redirect('index')
         else:
             messages.error(request, 'Correo electrónico o contraseña incorrectos.')
@@ -321,3 +329,223 @@ def secretaria_recibir(request, solicitud_id=None):
         return redirect('secretaria_solicitudes')
 
     return render(request, 'app1/secretaria_recibir.html', {'solicitud': solicitud, 'numero_tramite': numero_tramite})
+
+# ========================================================
+# MÓDULO JEFE DE CARRERA (CU004, CU006, CU008)
+# ========================================================
+
+@login_required(login_url='index')
+def jefe_pendientes(request):
+    if request.user.perfil.rol != 'JEFE_CARRERA':
+        return redirect('index')
+
+    perfil = request.user.perfil
+    
+    solicitudes = SolicitudHomologacion.objects.filter(
+        estado__in=['DOCUMENTACION_RECIBIDA', 'PENDIENTE_PRESENTACION', 'PROFESOR_ASIGNADO']
+    ).order_by('-fecha_actualizacion')
+
+    if perfil.carrera:
+        solicitudes = solicitudes.filter(
+            Q(alumno__carrera=perfil.carrera) | Q(materias_solicitadas__materia__carrera=perfil.carrera)
+        ).distinct()
+
+    busqueda = request.GET.get('q', '').strip()
+    if busqueda:
+        solicitudes = solicitudes.filter(
+            Q(numero_tramite__icontains=busqueda) |
+            Q(alumno__nombre_apellido__icontains=busqueda) |
+            Q(materias_solicitadas__materia__nombre__icontains=busqueda)
+        ).distinct()
+
+    filtro_falta = request.GET.get('falta', 'todos')
+
+    items_pendientes = []
+    for s in solicitudes:
+        for ms in s.materias_solicitadas.all():
+            falta = None
+            if not ms.profesor_evaluador and not ms.programa_institucional:
+                falta = 'profesor_y_programa'
+                falta_label = 'Profesor y programa'
+                falta_badge = 'badge-pendiente'
+            elif ms.profesor_evaluador and not ms.programa_institucional:
+                falta = 'programa'
+                falta_label = 'Programa de estudio'
+                falta_badge = 'badge-recibida'
+            elif not ms.profesor_evaluador and ms.programa_institucional:
+                falta = 'profesor'
+                falta_label = 'Profesor evaluador'
+                falta_badge = 'badge-en-evaluacion'
+
+            if falta:
+                if filtro_falta == 'todos' or filtro_falta == falta:
+                    items_pendientes.append({
+                        'solicitud': s,
+                        'materia_solicitada': ms,
+                        'falta': falta,
+                        'falta_label': falta_label,
+                        'falta_badge': falta_badge,
+                    })
+
+    contexto = {
+        'items_pendientes': items_pendientes,
+        'total_pendientes': len(items_pendientes),
+        'busqueda': busqueda,
+        'filtro_falta': filtro_falta,
+    }
+    return render(request, 'app1/jefe_pendientes.html', contexto)
+
+
+@login_required(login_url='index')
+def jefe_asignar(request, solicitud_id):
+    if request.user.perfil.rol != 'JEFE_CARRERA':
+        return redirect('index')
+
+    solicitud = get_object_or_404(SolicitudHomologacion, id=solicitud_id)
+    materias_solicitadas = solicitud.materias_solicitadas.all()
+    profesores = PerfilUsuario.objects.filter(rol='PROFESOR')
+
+    materias_con_programas = []
+    for ms in materias_solicitadas:
+        programas = ProgramaAcademico.objects.filter(materia=ms.materia)
+        materias_con_programas.append({
+            'ms': ms,
+            'programas': programas,
+        })
+
+    if request.method == 'POST':
+        todas_completas = True
+        for ms in materias_solicitadas:
+            prof_id = request.POST.get(f'profesor_{ms.id}')
+            prog_id = request.POST.get(f'programa_{ms.id}')
+
+            if prof_id:
+                ms.profesor_evaluador_id = prof_id
+            else:
+                todas_completas = False
+
+            if prog_id:
+                ms.programa_institucional_id = prog_id
+            else:
+                todas_completas = False
+
+            ms.save()
+
+        if todas_completas:
+            solicitud.estado = 'PROFESOR_ASIGNADO'
+            solicitud.save()
+            messages.success(request, f'¡Asignación guardada con éxito! La solicitud #{solicitud.numero_tramite} fue asignada a los profesores evaluadores.')
+        else:
+            messages.info(request, f'Se guardaron las asignaciones parciales para la solicitud #{solicitud.numero_tramite}.')
+
+        return redirect('jefe_pendientes')
+
+    contexto = {
+        'solicitud': solicitud,
+        'materias_con_programas': materias_con_programas,
+        'profesores': profesores,
+    }
+    return render(request, 'app1/jefe_asignar.html', contexto)
+
+
+@login_required(login_url='index')
+def jefe_dictamenes(request):
+    if request.user.perfil.rol != 'JEFE_CARRERA':
+        return redirect('index')
+
+    perfil = request.user.perfil
+    solicitudes = SolicitudHomologacion.objects.filter(
+        estado__in=['EVALUACION_FINALIZADA', 'CORRECCION_SOLICITADA']
+    ).order_by('-fecha_actualizacion')
+
+    if perfil.carrera:
+        solicitudes = solicitudes.filter(
+            Q(alumno__carrera=perfil.carrera) | Q(materias_solicitadas__materia__carrera=perfil.carrera)
+        ).distinct()
+
+    busqueda = request.GET.get('q', '').strip()
+    if busqueda:
+        solicitudes = solicitudes.filter(
+            Q(numero_tramite__icontains=busqueda) |
+            Q(alumno__nombre_apellido__icontains=busqueda) |
+            Q(materias_solicitadas__materia__nombre__icontains=busqueda)
+        ).distinct()
+
+    contexto = {
+        'solicitudes': solicitudes,
+        'busqueda': busqueda,
+    }
+    return render(request, 'app1/jefe_dictamenes.html', contexto)
+
+
+@login_required(login_url='index')
+def jefe_revisar_dictamen(request, solicitud_id):
+    if request.user.perfil.rol != 'JEFE_CARRERA':
+        return redirect('index')
+
+    solicitud = get_object_or_404(SolicitudHomologacion, id=solicitud_id)
+    materia_solicitada = solicitud.materias_solicitadas.first()
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+        observaciones = request.POST.get('observaciones', '').strip()
+
+        if accion == 'aprobar':
+            solicitud.estado = 'DICTAMEN_APROBADO'
+            solicitud.save()
+            messages.success(request, f'¡Dictamen aprobado! La solicitud #{solicitud.numero_tramite} fue derivada a Secretaría para registrar la resolución.')
+            return redirect('jefe_dictamenes')
+
+        elif accion == 'corregir':
+            if not observaciones:
+                messages.error(request, 'Las observaciones son obligatorias cuando se solicita una corrección al docente.')
+            else:
+                solicitud.estado = 'CORRECCION_SOLICITADA'
+                solicitud.save()
+                if materia_solicitada:
+                    materia_solicitada.observaciones_jefe_carrera = observaciones
+                    materia_solicitada.save()
+                messages.warning(request, f'Se solicitó corrección al profesor para la solicitud #{solicitud.numero_tramite}.')
+                return redirect('jefe_dictamenes')
+
+    contexto = {
+        'solicitud': solicitud,
+        'materia_solicitada': materia_solicitada,
+    }
+    return render(request, 'app1/jefe_revisar_dictamen.html', contexto)
+
+
+@login_required(login_url='index')
+def jefe_historial(request):
+    if request.user.perfil.rol != 'JEFE_CARRERA':
+        return redirect('index')
+
+    perfil = request.user.perfil
+    solicitudes = SolicitudHomologacion.objects.exclude(
+        estado__in=['PENDIENTE_PRESENTACION', 'DOCUMENTACION_RECIBIDA']
+    ).order_by('-fecha_actualizacion')
+
+    if perfil.carrera:
+        solicitudes = solicitudes.filter(
+            Q(alumno__carrera=perfil.carrera) | Q(materias_solicitadas__materia__carrera=perfil.carrera)
+        ).distinct()
+
+    busqueda = request.GET.get('q', '').strip()
+    if busqueda:
+        solicitudes = solicitudes.filter(
+            Q(numero_tramite__icontains=busqueda) |
+            Q(alumno__nombre_apellido__icontains=busqueda) |
+            Q(materias_solicitadas__materia__nombre__icontains=busqueda)
+        ).distinct()
+
+    estado_filtro = request.GET.get('estado', '')
+    if estado_filtro:
+        solicitudes = solicitudes.filter(estado=estado_filtro)
+
+    contexto = {
+        'solicitudes': solicitudes,
+        'busqueda': busqueda,
+        'estado_filtro': estado_filtro,
+        'estados_disponibles': SolicitudHomologacion.ESTADOS,
+    }
+    return render(request, 'app1/jefe_historial.html', contexto)
