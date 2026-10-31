@@ -1,0 +1,120 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Verificar Correo{% endblock titulo %}
+
+{% block usuario_header %}
+    <!-- Sin usuario arriba por ser pantalla de activación -->
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    /* Estilo para los 6 casilleros del código */
+    .codigo-input {
+        width: 48px;
+        height: 52px;
+        text-align: center;
+        font-size: 1.4rem;
+        font-weight: 700;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 10px;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+    .codigo-input:focus {
+        border-color: var(--color-primario);
+        box-shadow: 0 0 0 3px rgba(16, 124, 114, 0.15);
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row justify-content-center mt-4">
+    <div class="col-12 col-md-7 col-lg-5">
+
+        <!-- Tarjeta blanca centrada -->
+        <div class="card-homolotec shadow-sm text-center py-5 px-4">
+            
+            <!-- Icono círculo con @ -->
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+                 style="width: 56px; height: 56px; background-color: #e6f4f2; color: #107c72; font-size: 1.6rem; font-weight: bold;">
+                @
+            </div>
+
+            <h3 class="fw-bold text-dark mb-2">Verificá tu correo</h3>
+            <p class="text-muted mb-4" style="font-size: 0.95rem;">
+                Enviamos un código de 6 dígitos a<br>
+                <span class="fw-bold text-dark">{{ correo }}</span>
+            </p>
+
+            <!-- Alerta por si el código no coincide -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger py-2 mb-3" style="font-size: 0.9rem;" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'verificar_codigo' %}">
+                {% csrf_token %}
+
+                <!-- 6 casilleros con sus nombres d1 a d6 -->
+                <div class="d-flex justify-content-center gap-2 mb-4">
+                    <input type="text" name="d1" maxlength="1" class="codigo-input" autofocus required>
+                    <input type="text" name="d2" maxlength="1" class="codigo-input" required>
+                    <input type="text" name="d3" maxlength="1" class="codigo-input" required>
+                    <input type="text" name="d4" maxlength="1" class="codigo-input" required>
+                    <input type="text" name="d5" maxlength="1" class="codigo-input" required>
+                    <input type="text" name="d6" maxlength="1" class="codigo-input" required>
+                </div>
+
+                <button type="submit" class="btn btn-teal w-100 py-2 mb-3">
+                    VERIFICAR CÓDIGO
+                </button>
+            </form>
+
+            <a href="#" class="link-olvido" style="font-size: 0.9rem;">Reenviar código</a>
+
+        </div>
+
+    </div>
+</div>
+{% endblock contenido %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputs = document.querySelectorAll('.codigo-input');
+        
+        inputs.forEach((input, index) => {
+            // Al escribir cualquier número:
+            input.addEventListener('input', () => {
+                input.value = input.value.replace(/[^0-9]/g, '');
+                if (input.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            // Al presionar borrar (Backspace):
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && input.value === '' && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+
+            // Soporte para pegar los 6 números enteros (Ctrl + V):
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pegado = (e.clipboardData || window.clipboardData).getData('text').trim();
+                if (/^\d{6}$/.test(pegado)) {
+                    pegado.split('').forEach((num, i) => {
+                        if (inputs[i]) inputs[i].value = num;
+                    });
+                    inputs[inputs.length - 1].focus();
+                }
+            });
+        });
+    });
+</script>
+{% endblock extra_js %}

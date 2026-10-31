@@ -1,0 +1,36 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Cuenta Activada{% endblock titulo %}
+
+{% block usuario_header %}
+{% endblock usuario_header %}
+
+{% block contenido %}
+<div class="row justify-content-center mt-4">
+    <div class="col-12 col-md-7 col-lg-5">
+
+        <!-- Tarjeta blanca centrada -->
+        <div class="card-homolotec shadow-sm text-center py-5 px-4">
+            
+            <!-- Icono círculo verde con tilde -->
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+                 style="width: 56px; height: 56px; background-color: #d1fae5; color: #059669; font-size: 1.8rem; font-weight: bold;">
+                ✓
+            </div>
+
+            <h3 class="fw-bold text-dark mb-2">¡Tu cuenta se registró con éxito!</h3>
+            <p class="text-muted mb-4" style="font-size: 0.95rem;">
+                Verificamos tu correo y tu cuenta ya está activa.<br>
+                Ahora podés iniciar sesión con tus datos.
+            </p>
+
+            <a href="{% url 'index' %}" class="btn btn-teal w-100 py-2">
+                INICIAR SESIÓN
+            </a>
+
+        </div>
+
+    </div>
+</div>
+{% endblock contenido %}

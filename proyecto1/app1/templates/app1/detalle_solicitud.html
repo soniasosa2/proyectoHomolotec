@@ -1,0 +1,239 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Estado de la Solicitud{% endblock titulo %}
+
+{% block usuario_header %}
+    <div class="text-end">
+        <span class="d-block fw-bold text-white" style="font-size: 0.9rem;">
+            {{ request.user.perfil.get_rol_display }}
+        </span>
+        <a href="{% url 'cerrar_sesion' %}" class="text-white text-opacity-75 text-decoration-none" style="font-size: 0.8rem;">
+            Cerrar sesión
+        </a>
+    </div>
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    .sidebar-nav {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 10px 18px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    .sidebar-link.active {
+        background-color: #e6f4f2;
+        color: #107c72;
+        font-weight: 700;
+    }
+
+    /* Línea de tiempo vertical */
+    .timeline {
+        position: relative;
+        padding-left: 28px;
+        border-left: 2px solid #cbd5e1;
+        margin-left: 10px;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 26px;
+    }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-dot {
+        position: absolute;
+        left: -37px;
+        top: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #cbd5e1;
+        border: 3px solid #ffffff;
+        box-shadow: 0 0 0 1px #cbd5e1;
+    }
+    .timeline-dot.active {
+        background-color: #107c72;
+        box-shadow: 0 0 0 1px #107c72;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row g-4">
+
+    <!-- MENÚ LATERAL: Cambia según el rol -->
+    <div class="col-12 col-lg-3">
+        <div class="sidebar-nav shadow-sm d-flex flex-row flex-lg-column gap-2 overflow-auto">
+            {% if request.user.perfil.rol == 'ALUMNO' %}
+                <a href="{% url 'panel_alumno' %}" class="sidebar-link">Inicio</a>
+                <a href="{% url 'nueva_solicitud' %}" class="sidebar-link">Nueva solicitud</a>
+                <a href="{% url 'mis_solicitudes' %}" class="sidebar-link">Mis solicitudes</a>
+            {% elif request.user.perfil.rol == 'SECRETARIA' %}
+                <a href="{% url 'secretaria_solicitudes' %}" class="sidebar-link">Inicio</a>
+                <a href="{% url 'secretaria_recibir' %}" class="sidebar-link">Recibir solicitud</a>
+                <a href="#" class="sidebar-link">Registrar resolución</a>
+                <a href="{% url 'secretaria_solicitudes' %}" class="sidebar-link active">Solicitudes</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- FICHA DEL TRÁMITE -->
+    <div class="col-12 col-lg-9">
+        <div class="card-homolotec shadow-sm text-start">
+
+            <!-- Encabezado del trámite -->
+            <div class="border-bottom pb-3 mb-4">
+                <span class="text-muted fw-bold" style="font-size: 0.85rem;">Trámite #{{ solicitud.numero_tramite }}</span>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <h3 class="fw-bold text-dark mb-0">
+                        {{ solicitud.materias_solicitadas.first.materia.nombre|default:"Solicitud de Homologación" }}
+                    </h3>
+                    <span class="badge-estado
+                        {% if solicitud.estado == 'HOMOLOGACION_APROBADA' or solicitud.estado == 'DICTAMEN_APROBADO' %}badge-aprobada
+                        {% elif solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}badge-rechazada
+                        {% elif solicitud.estado == 'DOCUMENTACION_RECIBIDA' or solicitud.estado == 'PROFESOR_ASIGNADO' %}badge-recibida
+                        {% elif solicitud.estado == 'EN_EVALUACION' %}badge-en-evaluacion
+                        {% else %}badge-pendiente{% endif %}">
+                        {{ solicitud.get_estado_display }}
+                    </span>
+                </div>
+                <div class="text-muted mt-2" style="font-size: 0.85rem;">
+                    <span>Alumno: <strong>{{ solicitud.alumno.nombre_apellido }}</strong></span>
+                    <span class="mx-2">•</span>
+                    <span>Generada: {{ solicitud.fecha_creacion|date:"d/m/Y" }}</span>
+                    <span class="mx-2">•</span>
+                    <span>Actualización: {{ solicitud.fecha_actualizacion|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+
+            <!-- Cuerpo: Timeline + Panel derecho -->
+            <div class="row g-4 mb-4">
+
+                <!-- Línea de tiempo -->
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-dark mb-4">Progreso del trámite</h6>
+                    <div class="timeline">
+
+                        <!-- Paso 1: Solicitud generada (siempre activo) -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot active"></div>
+                            <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.92rem;">Solicitud generada</h6>
+                            <small class="text-muted">{{ solicitud.fecha_creacion|date:"d/m/Y" }}</small>
+                        </div>
+
+                        <!-- Paso 2: Documentación recibida -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot {% if solicitud.estado != 'PENDIENTE_PRESENTACION' %}active{% endif %}"></div>
+                            <h6 class="fw-bold mb-0 {% if solicitud.estado == 'PENDIENTE_PRESENTACION' %}text-muted{% else %}text-dark{% endif %}" style="font-size: 0.92rem;">
+                                Documentación recibida
+                            </h6>
+                            <small class="text-muted">
+                                {% if solicitud.estado != 'PENDIENTE_PRESENTACION' %}{{ solicitud.fecha_actualizacion|date:"d/m/Y" }}{% else %}Pendiente en Secretaría{% endif %}
+                            </small>
+                        </div>
+
+                        <!-- Paso 3: Profesor asignado -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot {% if solicitud.estado == 'PROFESOR_ASIGNADO' or solicitud.estado == 'EN_EVALUACION' or solicitud.estado == 'DICTAMEN_APROBADO' or solicitud.estado == 'HOMOLOGACION_APROBADA' or solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}active{% endif %}"></div>
+                            <h6 class="fw-bold mb-0 {% if solicitud.estado == 'PENDIENTE_PRESENTACION' or solicitud.estado == 'DOCUMENTACION_RECIBIDA' %}text-muted{% else %}text-dark{% endif %}" style="font-size: 0.92rem;">
+                                Profesor asignado
+                            </h6>
+                            <small class="text-muted">
+                                {% if solicitud.estado == 'PROFESOR_ASIGNADO' or solicitud.estado == 'EN_EVALUACION' or solicitud.estado == 'DICTAMEN_APROBADO' or solicitud.estado == 'HOMOLOGACION_APROBADA' or solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}
+                                    {{ solicitud.fecha_actualizacion|date:"d/m/Y" }}
+                                {% else %}Pendiente{% endif %}
+                            </small>
+                        </div>
+
+                        <!-- Paso 4: En evaluación -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot {% if solicitud.estado == 'EN_EVALUACION' or solicitud.estado == 'DICTAMEN_APROBADO' or solicitud.estado == 'HOMOLOGACION_APROBADA' or solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}active{% endif %}"></div>
+                            <h6 class="fw-bold mb-0 {% if solicitud.estado == 'EN_EVALUACION' or solicitud.estado == 'DICTAMEN_APROBADO' or solicitud.estado == 'HOMOLOGACION_APROBADA' or solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}text-dark{% else %}text-muted{% endif %}" style="font-size: 0.92rem;">
+                                En evaluación
+                            </h6>
+                            <small class="text-muted">
+                                {% if solicitud.estado == 'EN_EVALUACION' or solicitud.estado == 'DICTAMEN_APROBADO' or solicitud.estado == 'HOMOLOGACION_APROBADA' or solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}
+                                    {{ solicitud.fecha_actualizacion|date:"d/m/Y" }}
+                                {% else %}Pendiente{% endif %}
+                            </small>
+                        </div>
+
+                        <!-- Paso 5: Resolución final -->
+                        <div class="timeline-item">
+                            <div class="timeline-dot {% if solicitud.estado == 'HOMOLOGACION_APROBADA' or solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}active{% endif %}"></div>
+                            <h6 class="fw-bold mb-0 {% if solicitud.estado == 'HOMOLOGACION_APROBADA' or solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}text-dark{% else %}text-muted{% endif %}" style="font-size: 0.92rem;">
+                                Resolución final
+                            </h6>
+                            <small class="{% if solicitud.estado == 'HOMOLOGACION_APROBADA' %}text-success fw-bold{% elif solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                {% if solicitud.estado == 'HOMOLOGACION_APROBADA' %}Homologación aprobada
+                                {% elif solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}Homologación rechazada
+                                {% else %}Pendiente{% endif %}
+                            </small>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Panel derecho: Observaciones y (solo para Alumno) Formulario -->
+                <div class="col-md-6">
+
+                    <div class="p-3 mb-3 rounded-3" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                        <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">Observaciones</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.88rem; line-height: 1.5;">
+                            {% if solicitud.observaciones_alumno %}
+                                {{ solicitud.observaciones_alumno }}
+                            {% else %}
+                                Sin observaciones adicionales.
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <!-- El formulario descargable solo lo ve el Alumno -->
+                    {% if request.user.perfil.rol == 'ALUMNO' %}
+                        <div class="p-3 rounded-3" style="background-color: #e6f4f2; border: 1px solid #bfe3de;">
+                            <h6 class="fw-bold mb-1" style="color: #107c72; font-size: 0.9rem;">
+                                Formulario oficial de homologación
+                            </h6>
+                            <p class="text-muted mb-3" style="font-size: 0.8rem;">
+                                Descargalo, imprimilo, firmalo y presentalo en Secretaría junto a tu analítico y programas.
+                            </p>
+                            <a href="#" class="btn btn-sm btn-teal w-100">
+                                Descargar Formulario PDF
+                            </a>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <!-- Botón VOLVER: Va al panel correcto según el rol -->
+            <div class="d-flex justify-content-end pt-3 border-top">
+                {% if request.user.perfil.rol == 'ALUMNO' %}
+                    <a href="{% url 'panel_alumno' %}" class="btn btn-teal px-4">VOLVER</a>
+                {% elif request.user.perfil.rol == 'SECRETARIA' %}
+                    <a href="{% url 'secretaria_solicitudes' %}" class="btn btn-teal px-4">VOLVER</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock contenido %}

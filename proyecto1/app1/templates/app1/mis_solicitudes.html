@@ -1,0 +1,200 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Mis Solicitudes{% endblock titulo %}
+
+{% block usuario_header %}
+    <div class="text-end">
+        <span class="d-block fw-bold text-white" style="font-size: 0.9rem;">Alumno</span>
+        <a href="{% url 'cerrar_sesion' %}" class="text-white text-opacity-75 text-decoration-none" style="font-size: 0.8rem;">
+            Cerrar sesión
+        </a>
+    </div>
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    /* Menú lateral responsivo: vertical en PC, pestañas horizontales en móvil */
+    .sidebar-nav {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 10px 18px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    .sidebar-link.active {
+        background-color: #e6f4f2;
+        color: #107c72;
+        font-weight: 700;
+    }
+
+    /* Estilos de tabla amplia y espaciosa */
+    .table-homolotec {
+        margin-bottom: 0;
+    }
+    .table-homolotec th {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        color: #64748b;
+        padding: 16px 14px;
+        border-bottom: 1px solid #e2e8f0 !important;
+        white-space: nowrap;
+    }
+    .table-homolotec td {
+        padding: 16px 14px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.92rem;
+    }
+    .table-homolotec tbody tr:hover {
+        background-color: #f8fafc;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row g-4">
+
+    <!-- COLUMNA IZQUIERDA: MENÚ LATERAL (Se adapta si achicás la pantalla) -->
+    <div class="col-12 col-lg-3">
+        <div class="sidebar-nav shadow-sm d-flex flex-row flex-lg-column gap-2 overflow-auto">
+            <a href="{% url 'panel_alumno' %}" class="sidebar-link">Inicio</a>
+            <a href="{% url 'nueva_solicitud' %}" class="sidebar-link">Nueva solicitud</a>
+            <a href="{% url 'mis_solicitudes' %}" class="sidebar-link active">Mis solicitudes</a>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: LISTADO Y FILTROS -->
+    <div class="col-12 col-lg-9">
+
+        <!-- Encabezado con título y botón de Nueva Solicitud -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+            <div class="text-start">
+                <h2 class="fw-bold text-dark mb-1">Mis solicitudes</h2>
+                <p class="text-muted mb-0" style="font-size: 0.95rem;">Consultá todas tus solicitudes y el estado de cada trámite.</p>
+            </div>
+            <a href="{% url 'nueva_solicitud' %}" class="btn btn-teal px-3 py-2 fw-bold text-uppercase text-nowrap" style="font-size: 0.85rem;">
+                NUEVA SOLICITUD
+            </a>
+        </div>
+
+        <!-- Barra de Búsqueda y Filtros con buen espaciado -->
+        <div class="card-homolotec shadow-sm p-4 mb-4 text-start">
+            <form method="GET" action="{% url 'mis_solicitudes' %}">
+                <div class="row g-3 align-items-end">
+                    
+                    <!-- Campo de búsqueda -->
+                    <div class="col-12 col-md-5">
+                        <label class="form-label">Buscar por número de trámite o materia</label>
+                        <input type="text" name="q" value="{{ busqueda }}" class="form-control" placeholder="Ej.: HOM-2026-0001 o Programación I">
+                    </div>
+
+                    <!-- Filtro desplegable por estado -->
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-select">
+                            <option value="">Todos los estados</option>
+                            {% for clave, nombre in estados_disponibles %}
+                                <option value="{{ clave }}" {% if estado_filtro == clave %}selected{% endif %}>
+                                    {{ nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Botón Buscar -->
+                    <div class="col-12 col-md-3">
+                        <button type="submit" class="btn btn-teal w-100 py-2">
+                            BUSCAR
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla con Todas mis solicitudes -->
+        <div class="card-homolotec shadow-sm p-4 text-start">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">Todas mis solicitudes</h5>
+                <span class="badge bg-light text-muted border px-2 py-1" style="font-weight: 600;">
+                    {{ solicitudes.count }} trámite{{ solicitudes.count|pluralize:"s" }}
+                </span>
+            </div>
+
+            {% if solicitudes %}
+                <div class="table-responsive">
+                    <table class="table table-homolotec align-middle text-start">
+                        <thead>
+                            <tr>
+                                <th class="border-0">TRÁMITE</th>
+                                <th class="border-0">MATERIA</th>
+                                <th class="border-0 text-nowrap">ÚLTIMA ACTUALIZACIÓN</th>
+                                <th class="border-0 text-center">ESTADO</th>
+                                <th class="border-0 text-end">ACCIÓN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sol in solicitudes %}
+                                <tr>
+                                    <td class="fw-bold text-dark text-nowrap">
+                                        #{{ sol.numero_tramite }}
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-dark">
+                                            {{ sol.materias_solicitadas.first.materia.nombre|default:"Varias materias" }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted text-nowrap" style="font-size: 0.88rem;">
+                                        {{ sol.fecha_actualizacion|date:"d/m/Y" }}
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        <span class="badge-estado badge-pendiente">
+                                            {{ sol.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <a href="{% url 'detalle_solicitud' sol.id %}" class="btn btn-sm btn-teal px-3 py-1 fw-bold" style="font-size: 0.8rem;">
+                                            VER
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary opacity-50"></i>
+                    <p class="mb-0">No se encontraron solicitudes con los criterios seleccionados.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Mensaje al pie -->
+        <div class="text-start mt-3 ps-2">
+            <small class="text-muted" style="font-size: 0.85rem;">
+                Recibirás un email por cada cambio de estado de tus solicitudes.
+            </small>
+        </div>
+
+    </div>
+
+</div>
+{% endblock contenido %}

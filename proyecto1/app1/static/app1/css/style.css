@@ -1,0 +1,211 @@
+/* ========================================================
+   VARIABLES DE COLOR Y DISEÑO - HOMOLOTEC
+   ======================================================== */
+:root {
+    --color-primario: #107c72;         /* Verde azulado institucional */
+    --color-primario-hover: #0c5e56;   /* Verde azulado oscuro */
+    --color-azul-header: #1b263b;      /* Azul noche del header */
+    --color-fondo: #f4f6f8;            /* Gris claro de fondo */
+    --color-tarjeta: #ffffff;          /* Blanco puro */
+    --color-texto: #334155;            /* Texto gris oscuro */
+    --color-borde: #e2e8f0;            /* Bordes suaves */
+}
+
+/* Tipografía y fondo general */
+body {
+    background-color: var(--color-fondo) !important;
+    color: var(--color-texto);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ========================================================
+   TARJETAS Y CONTENEDORES (Estilo del PDF)
+   ======================================================== */
+.card-homolotec {
+    background-color: var(--color-tarjeta);
+    border-radius: 14px;
+    border: 1px solid var(--color-borde);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    padding: 28px;
+}
+
+/* ========================================================
+   BOTONES
+   ======================================================== */
+.btn-teal {
+    background-color: var(--color-primario) !important;
+    border-color: var(--color-primario) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 10px 20px;
+    transition: all 0.2s ease;
+}
+
+.btn-teal:hover {
+    background-color: var(--color-primario-hover) !important;
+    border-color: var(--color-primario-hover) !important;
+}
+
+.btn-outline-teal {
+    background-color: transparent !important;
+    border: 1.5px solid var(--color-primario) !important;
+    color: var(--color-primario) !important;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 10px 20px;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-teal:hover {
+    background-color: #f0fdfa !important;
+    color: var(--color-primario-hover) !important;
+}
+
+/* ========================================================
+   INPUTS Y FORMULARIOS
+   ======================================================== */
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-texto);
+    margin-bottom: 6px;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(16, 124, 114, 0.15);
+}
+
+/* ========================================================
+   BADGES / ETIQUETAS DE ESTADO (Colores del PDF)
+   ======================================================== */
+.badge-estado {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-en-evaluacion {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.badge-aprobada {
+    background-color: #d1fae5;
+    color: #059669;
+}
+
+.badge-rechazada {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.badge-recibida, .badge-profesor {
+    background-color: #e0f2fe;
+    color: #0284c7;
+}
+
+.badge-pendiente {
+    background-color: #fef9c3;
+    color: #a16207;
+}
+
+/* ========================================================
+   PANTALLA DE LOGIN (Pantalla 1 del PDF)
+   ======================================================== */
+.login-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 420px;
+    margin: 40px auto;
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.logo-title {
+    font-size: 38px;
+    font-weight: 800;
+    color: var(--color-azul-header);
+    letter-spacing: -0.5px;
+}
+
+.logo-title span {
+    color: var(--color-primario);
+}
+
+.logo-subtitle {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #64748b;
+    margin-top: 2px;
+    text-transform: uppercase;
+}
+
+.login-card {
+    background-color: var(--color-tarjeta);
+    width: 100%;
+    padding: 35px 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--color-borde);
+}
+
+.card-title-login {
+    text-align: center;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--color-azul-header);
+    margin-bottom: 25px;
+    letter-spacing: 0.5px;
+}
+
+.link-olvido {
+    display: block;
+    text-align: center;
+    color: var(--color-primario);
+    font-size: 13px;
+    text-decoration: none;
+    margin-top: 18px;
+    font-weight: 500;
+}
+
+.link-olvido:hover {
+    text-decoration: underline;
+}
+
+.divider {
+    text-align: center;
+    margin: 18px 0;
+    position: relative;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 42%;
+    height: 1px;
+    background-color: var(--color-borde);
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }

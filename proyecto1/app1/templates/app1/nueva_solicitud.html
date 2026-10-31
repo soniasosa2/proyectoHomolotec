@@ -1,0 +1,145 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Nueva Solicitud{% endblock titulo %}
+
+{% block usuario_header %}
+    <div class="text-end">
+        <span class="d-block fw-bold text-white" style="font-size: 0.9rem;">Alumno</span>
+        <a href="{% url 'cerrar_sesion' %}" class="text-white text-opacity-75 text-decoration-none" style="font-size: 0.8rem;">
+            Cerrar sesión
+        </a>
+    </div>
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    .sidebar-nav {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 15px 10px;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 10px 18px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    .sidebar-link.active {
+        background-color: #e6f4f2;
+        color: #107c72;
+        font-weight: 700;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row g-4">
+
+    <!-- COLUMNA IZQUIERDA: MENÚ LATERAL -->
+    <div class="col-12 col-md-3">
+        <div class="sidebar-nav shadow-sm">
+            <a href="{% url 'panel_alumno' %}" class="sidebar-link">Inicio</a>
+            <a href="{% url 'nueva_solicitud' %}" class="sidebar-link active">Nueva solicitud</a>
+            <a href="{% url 'mis_solicitudes' %}" class="sidebar-link">Mis solicitudes</a>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: FORMULARIO -->
+    <div class="col-12 col-md-9">
+
+        <div class="mb-4 text-start">
+            <h2 class="fw-bold text-dark mb-1">Nueva solicitud de homologación</h2>
+            <p class="text-muted" style="font-size: 0.95rem;">Completá los datos académicos para registrar tu solicitud.</p>
+        </div>
+
+        <div class="card-homolotec shadow-sm text-start">
+            <form method="POST" action="{% url 'nueva_solicitud' %}">
+                {% csrf_token %}
+
+                <!-- SECCIÓN 1: DATOS DE ORIGEN -->
+                <h5 class="fw-bold text-dark mb-3">1. Datos de origen</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Institución de origen</label>
+                        <input type="text" name="institucion_origen" class="form-control" placeholder="Nombre completo de la institución" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Carrera de origen</label>
+                        <input type="text" name="carrera_origen" class="form-control" placeholder="Nombre de la carrera" required>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <!-- SECCIÓN 2: MATERIAS A HOMOLOGAR -->
+                <h5 class="fw-bold text-dark mb-3">2. Materias a homologar</h5>
+                <div id="contenedor-materias">
+                    <div class="row g-3 mb-3 fila-materia">
+                        <div class="col-12">
+                            <label class="form-label">Materia</label>
+                            <select name="materias" class="form-select" required>
+                                <option value="" selected disabled>Seleccionar materia</option>
+                                {% for materia in materias_disponibles %}
+                                    <option value="{{ materia.id }}">{{ materia.nombre }} ({{ materia.año }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón para agregar más materias -->
+                <button type="button" id="btn-agregar-materia" class="btn text-decoration-none fw-bold p-0 mb-4" style="color: #107c72; font-size: 0.9rem;">
+                    + AGREGAR
+                </button>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <!-- SECCIÓN 3: INFORMACIÓN ADICIONAL -->
+                <h5 class="fw-bold text-dark mb-3">3. Información adicional</h5>
+                <div class="mb-4">
+                    <label class="form-label">Observaciones</label>
+                    <textarea name="observaciones" rows="3" class="form-control" placeholder="Agregá información que pueda ser útil para el trámite"></textarea>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN -->
+                <div class="d-flex justify-content-end align-items-center gap-3 pt-2">
+                    <a href="{% url 'panel_alumno' %}" class="btn text-secondary fw-semibold text-decoration-none">
+                        CANCELAR
+                    </a>
+                    <button type="submit" class="btn btn-teal px-4">
+                        ENVIAR SOLICITUD
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+
+</div>
+{% endblock contenido %}
+
+{% block extra_js %}
+<script>
+    // Script sencillo para duplicar la fila de materias al hacer clic en "+ AGREGAR"
+    document.getElementById('btn-agregar-materia').addEventListener('click', () => {
+        const contenedor = document.getElementById('contenedor-materias');
+        const primeraFila = document.querySelector('.fila-materia');
+        const nuevaFila = primeraFila.cloneNode(true);
+        // Reseteamos la selección en el nuevo desplegable
+        nuevaFila.querySelector('select').selectedIndex = 0;
+        contenedor.appendChild(nuevaFila);
+    });
+</script>
+{% endblock extra_js %}
