@@ -17,6 +17,8 @@ urlpatterns = [
     path('secretaria/solicitudes/', views.secretaria_solicitudes, name='secretaria_solicitudes'),
     path('secretaria/recibir/', views.secretaria_recibir, name='secretaria_recibir'),
     path('secretaria/recibir/<int:solicitud_id>/', views.secretaria_recibir, name='secretaria_recibir_detalle'),
+    path('secretaria/resoluciones/', views.secretaria_resoluciones, name='secretaria_resoluciones'),
+    path('secretaria/resolucion/<int:solicitud_id>/', views.secretaria_registrar_resolucion, name='secretaria_registrar_resolucion'),
     
     # Jefe de Carrera (CU004, CU006, CU008)
     path('jefe-carrera/', views.jefe_pendientes, name='jefe_pendientes'),

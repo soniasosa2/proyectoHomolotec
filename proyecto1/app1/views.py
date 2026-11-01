@@ -705,3 +705,67 @@ def profesor_historial(request):
         'busqueda': busqueda,
     }
     return render(request, 'app1/profesor_historial.html', contexto)
+# ========================================================
+# CU007: REGISTRAR RESOLUCIÓN DE HOMOLOGACIÓN (SECRETARÍA)
+# ========================================================
+
+@login_required(login_url='index')
+def secretaria_resoluciones(request):
+    if request.user.perfil.rol != 'SECRETARIA':
+        return redirect('index')
+
+    # Trámites con dictamen aprobado por el Jefe de Carrera listos para finalizar
+    solicitudes = SolicitudHomologacion.objects.filter(
+        estado='DICTAMEN_APROBADO'
+    ).order_by('-fecha_actualizacion')
+
+    busqueda = request.GET.get('q', '').strip()
+    if busqueda:
+        solicitudes = solicitudes.filter(
+            Q(numero_tramite__icontains=busqueda) |
+            Q(alumno__nombre_apellido__icontains=busqueda) |
+            Q(materias_solicitadas__materia__nombre__icontains=busqueda)
+        ).distinct()
+
+    contexto = {
+        'solicitudes': solicitudes,
+        'busqueda': busqueda,
+    }
+    return render(request, 'app1/secretaria_resoluciones.html', contexto)
+
+
+@login_required(login_url='index')
+def secretaria_registrar_resolucion(request, solicitud_id):
+    if request.user.perfil.rol != 'SECRETARIA':
+        return redirect('index')
+
+    solicitud = get_object_or_404(SolicitudHomologacion, id=solicitud_id)
+    materia_solicitada = solicitud.materias_solicitadas.first()
+
+    # Si el dictamen del docente fue rechazado, la resolución es rechazo; si no, es aprobación
+    es_aprobada = True
+    if materia_solicitada and materia_solicitada.resultado_dictamen == 'RECHAZADA':
+        es_aprobada = False
+
+    # Al presionar CONFIRMAR en el modal
+    if request.method == 'POST':
+        if es_aprobada:
+            solicitud.estado = 'HOMOLOGACION_APROBADA'
+        else:
+            solicitud.estado = 'HOMOLOGACION_RECHAZADA'
+        solicitud.save()
+
+        # Muestra la Pantalla 12 ter (Resolución registrada con éxito)
+        contexto_exito = {
+            'solicitud': solicitud,
+            'materia_solicitada': materia_solicitada,
+            'es_aprobada': es_aprobada,
+        }
+        return render(request, 'app1/secretaria_resolucion_exitosa.html', contexto_exito)
+
+    contexto = {
+        'solicitud': solicitud,
+        'materia_solicitada': materia_solicitada,
+        'es_aprobada': es_aprobada,
+    }
+    return render(request, 'app1/secretaria_registrar_resolucion.html', contexto)
