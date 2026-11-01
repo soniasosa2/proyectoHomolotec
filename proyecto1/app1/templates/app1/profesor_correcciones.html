@@ -1,0 +1,160 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Profesor - Correcciones Pendientes{% endblock titulo %}
+
+{% block usuario_header %}
+    <div class="text-end">
+        <span class="d-block fw-bold text-white" style="font-size: 0.9rem;">Profesor</span>
+        <a href="{% url 'cerrar_sesion' %}" class="text-white text-opacity-75 text-decoration-none" style="font-size: 0.8rem;">
+            Cerrar sesión
+        </a>
+    </div>
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    .sidebar-nav {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 10px 18px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    .sidebar-link.active {
+        background-color: #e6f4f2;
+        color: #107c72;
+        font-weight: 700;
+    }
+    .table-homolotec th {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        color: #64748b;
+        padding: 16px 14px;
+        border-bottom: 1px solid #e2e8f0 !important;
+        white-space: nowrap;
+    }
+    .table-homolotec td {
+        padding: 16px 14px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.92rem;
+    }
+    .table-homolotec tbody tr:hover {
+        background-color: #f8fafc;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row g-4">
+
+    <!-- MENÚ LATERAL DEL PROFESOR -->
+    <div class="col-12 col-lg-3">
+        <div class="sidebar-nav shadow-sm d-flex flex-row flex-lg-column gap-2 overflow-auto">
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link">Inicio</a>
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link">Solicitudes asignadas</a>
+            <a href="{% url 'profesor_correcciones' %}" class="sidebar-link active">Correcciones</a>
+            <a href="{% url 'profesor_historial' %}" class="sidebar-link">Historial</a>
+        </div>
+    </div>
+
+    <!-- CONTENIDO: CORRECCIONES PENDIENTES (PANTALLA 10 BIS) -->
+    <div class="col-12 col-lg-9">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} py-2 mb-3" style="font-size: 0.9rem;" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="text-start mb-4">
+            <h2 class="fw-bold text-dark mb-1">Correcciones pendientes</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                Dictámenes devueltos por el Jefe de Carrera para completar o modificar.
+            </p>
+        </div>
+
+        <!-- Buscador -->
+        <div class="card-homolotec shadow-sm p-4 mb-4 text-start">
+            <form method="GET" action="{% url 'profesor_correcciones' %}">
+                <div class="d-flex gap-2">
+                    <input type="text" name="q" value="{{ busqueda }}" class="form-control" placeholder="Ingresá un número, nombre o materia">
+                    <button type="submit" class="btn btn-teal px-4">
+                        BUSCAR
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla: Dictámenes para corregir -->
+        <div class="card-homolotec shadow-sm p-4 text-start">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">Dictámenes para corregir</h5>
+                <span class="text-muted" style="font-size: 0.85rem;">{{ correcciones.count }} trámites</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-homolotec align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>TRÁMITE</th>
+                            <th>ALUMNO</th>
+                            <th>MATERIA</th>
+                            <th>DEVUELTO</th>
+                            <th class="text-end">ACCIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ms in correcciones %}
+                            <tr>
+                                <td class="fw-bold text-dark">{{ ms.solicitud.numero_tramite }}</td>
+                                <td>{{ ms.solicitud.alumno.nombre_apellido }}</td>
+                                <td>{{ ms.materia.nombre }}</td>
+                                <td>{{ ms.solicitud.fecha_actualizacion|date:"d/m/Y" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'profesor_corregir' ms.id %}" class="btn btn-teal btn-sm px-3 py-1">
+                                        CORREGIR
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    No tenés dictámenes pendientes de corrección.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-muted" style="font-size: 0.85rem;">
+                <p class="mb-0">
+                    Al abrir el trámite verás el dictamen anterior y las observaciones del Jefe de Carrera.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock contenido %}

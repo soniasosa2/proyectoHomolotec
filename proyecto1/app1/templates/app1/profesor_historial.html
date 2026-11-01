@@ -1,0 +1,177 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Profesor - Historial de Evaluaciones{% endblock titulo %}
+
+{% block usuario_header %}
+    <div class="text-end">
+        <span class="d-block fw-bold text-white" style="font-size: 0.9rem;">Profesor</span>
+        <a href="{% url 'cerrar_sesion' %}" class="text-white text-opacity-75 text-decoration-none" style="font-size: 0.8rem;">
+            Cerrar sesión
+        </a>
+    </div>
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    .sidebar-nav {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 10px 18px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    .sidebar-link.active {
+        background-color: #e6f4f2;
+        color: #107c72;
+        font-weight: 700;
+    }
+    .table-homolotec th {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        color: #64748b;
+        padding: 16px 14px;
+        border-bottom: 1px solid #e2e8f0 !important;
+        white-space: nowrap;
+    }
+    .table-homolotec td {
+        padding: 16px 14px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.92rem;
+    }
+    .table-homolotec tbody tr:hover {
+        background-color: #f8fafc;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row g-4">
+
+    <!-- MENÚ LATERAL DEL PROFESOR -->
+    <div class="col-12 col-lg-3">
+        <div class="sidebar-nav shadow-sm d-flex flex-row flex-lg-column gap-2 overflow-auto">
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link">Inicio</a>
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link">Solicitudes asignadas</a>
+            <a href="{% url 'profesor_correcciones' %}" class="sidebar-link">Correcciones</a>
+            <a href="{% url 'profesor_historial' %}" class="sidebar-link active">Historial</a>
+        </div>
+    </div>
+
+    <!-- CONTENIDO: HISTORIAL DE EVALUACIONES (PANTALLA 10 QUATER) -->
+    <div class="col-12 col-lg-9">
+
+        <div class="text-start mb-4">
+            <h2 class="fw-bold text-dark mb-1">Historial de evaluaciones</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                Consultá los dictámenes que ya enviaste y el estado actual de cada trámite.
+            </p>
+        </div>
+
+        <!-- Buscador -->
+        <div class="card-homolotec shadow-sm p-4 mb-4 text-start">
+            <form method="GET" action="{% url 'profesor_historial' %}">
+                <div class="d-flex gap-2">
+                    <input type="text" name="q" value="{{ busqueda }}" class="form-control" placeholder="Ingresá un número, nombre o materia">
+                    <button type="submit" class="btn btn-teal px-4">
+                        BUSCAR
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla: Dictámenes enviados -->
+        <div class="card-homolotec shadow-sm p-4 text-start">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">Dictámenes enviados</h5>
+                <span class="text-muted" style="font-size: 0.85rem;">{{ evaluaciones.count }} evaluaciones</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-homolotec align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>TRÁMITE</th>
+                            <th>ALUMNO / MATERIA</th>
+                            <th>ENVÍO</th>
+                            <th>DICTAMEN</th>
+                            <th>ESTADO DEL TRÁMITE</th>
+                            <th class="text-end">ACCIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ms in evaluaciones %}
+                            <tr>
+                                <td class="fw-bold text-dark">{{ ms.solicitud.numero_tramite }}</td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ ms.solicitud.alumno.nombre_apellido }}</div>
+                                    <small class="text-muted">{{ ms.materia.nombre }}</small>
+                                </td>
+                                <td>{{ ms.solicitud.fecha_actualizacion|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if ms.resultado_dictamen == 'APROBADA' %}
+                                        <span class="badge-estado badge-aprobada">Aprobada</span>
+                                    {% elif ms.resultado_dictamen == 'RECHAZADA' %}
+                                        <span class="badge-estado badge-rechazada">Rechazada</span>
+                                    {% else %}
+                                        <span class="badge-estado badge-pendiente">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge-estado
+                                        {% if ms.solicitud.estado == 'HOMOLOGACION_APROBADA' or ms.solicitud.estado == 'DICTAMEN_APROBADO' %}badge-aprobada
+                                        {% elif ms.solicitud.estado == 'HOMOLOGACION_RECHAZADA' %}badge-rechazada
+                                        {% elif ms.solicitud.estado == 'EVALUACION_FINALIZADA' %}badge-recibida
+                                        {% elif ms.solicitud.estado == 'CORRECCION_SOLICITADA' %}badge-en-evaluacion
+                                        {% else %}badge-pendiente{% endif %}">
+                                        {{ ms.solicitud.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'detalle_solicitud' ms.solicitud.id %}" class="btn btn-teal btn-sm px-3 py-1">
+                                        VER
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    No has emitido evaluaciones todavía.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-muted" style="font-size: 0.85rem;">
+                <p class="mb-1">
+                    El dictamen del profesor y la resolución final de Secretaría se muestran por separado.
+                </p>
+                <p class="mb-0">
+                    Los dictámenes devueltos para modificar aparecen en <strong>"Correcciones"</strong>.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock contenido %}

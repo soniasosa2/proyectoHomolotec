@@ -93,6 +93,11 @@
                 <a href="{% url 'jefe_pendientes' %}" class="sidebar-link">Pendientes</a>
                 <a href="{% url 'jefe_dictamenes' %}" class="sidebar-link">Revisar dictámenes</a>
                 <a href="{% url 'jefe_historial' %}" class="sidebar-link active">Historial</a>
+                {% elif request.user.perfil.rol == 'PROFESOR' %}
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link">Inicio</a>
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link">Solicitudes asignadas</a>
+            <a href="{% url 'profesor_correcciones' %}" class="sidebar-link">Correcciones</a>
+             <a href="{% url 'profesor_historial' %}" class="sidebar-link active">Historial</a>
             {% endif %}
         </div>
     </div>
@@ -235,6 +240,8 @@
                     <a href="{% url 'secretaria_solicitudes' %}" class="btn btn-teal px-4">VOLVER</a>
                  {% elif request.user.perfil.rol == 'JEFE_CARRERA' %}
                     <a href="{% url 'jefe_historial' %}" class="btn btn-teal px-4">VOLVER</a>
+                {% elif request.user.perfil.rol == 'PROFESOR' %}
+                    <a href="{% url 'profesor_historial' %}" class="btn btn-teal px-4">VOLVER</a>
                 {% endif %}
             </div>
 
