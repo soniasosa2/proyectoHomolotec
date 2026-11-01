@@ -1,0 +1,245 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Evaluar Solicitud{% endblock titulo %}
+
+{% block usuario_header %}
+    <div class="text-end">
+        <span class="d-block fw-bold text-white" style="font-size: 0.9rem;">Profesor</span>
+        <a href="{% url 'cerrar_sesion' %}" class="text-white text-opacity-75 text-decoration-none" style="font-size: 0.8rem;">
+            Cerrar sesión
+        </a>
+    </div>
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    .sidebar-nav {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 10px 18px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    .sidebar-link.active {
+        background-color: #e6f4f2;
+        color: #107c72;
+        font-weight: 700;
+    }
+
+    /* Botones de selección de resultado */
+    .btn-resultado {
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 2px solid #cbd5e1;
+        background-color: #ffffff;
+        color: #475569;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-check:checked + .btn-resultado-aprobada {
+        background-color: #e6f4f2 !important;
+        border-color: #107c72 !important;
+        color: #107c72 !important;
+        font-weight: 700;
+    }
+    .btn-check:checked + .btn-resultado-rechazada {
+        background-color: #fef2f2 !important;
+        border-color: #ef4444 !important;
+        color: #dc2626 !important;
+        font-weight: 700;
+    }
+    .doc-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .doc-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row g-4">
+
+    <!-- MENÚ LATERAL DEL PROFESOR -->
+    <div class="col-12 col-lg-3">
+        <div class="sidebar-nav shadow-sm d-flex flex-row flex-lg-column gap-2 overflow-auto">
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link">Inicio</a>
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link active">Solicitudes asignadas</a>
+            <a href="{% url 'profesor_correcciones' %}" class="sidebar-link">Correcciones</a>
+            <a href="{% url 'profesor_historial' %}" class="sidebar-link">Historial</a>
+        </div>
+    </div>
+
+    <!-- CONTENIDO: EVALUAR SOLICITUD (PANTALLA 10 DEL PDF) -->
+    <div class="col-12 col-lg-9">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} py-2 mb-3" style="font-size: 0.9rem;" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="text-start mb-4">
+            <h2 class="fw-bold text-dark mb-1">Evaluar solicitud</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                {{ solicitud.numero_tramite }} - {{ materia_solicitada.materia.nombre }}
+            </p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="card-homolotec shadow-sm p-4 text-start mb-4">
+                <div class="row g-4">
+
+                    <!-- COLUMNA IZQUIERDA: DOCUMENTACIÓN DEL ALUMNO -->
+                    <div class="col-12 col-lg-6 border-end-lg pe-lg-4">
+                        <h5 class="fw-bold text-dark mb-3">Documentación del alumno</h5>
+
+                        <div class="doc-item">
+                            <div>
+                                <strong class="d-block text-dark" style="font-size: 0.92rem;">Datos de la solicitud</strong>
+                                <small class="text-muted">Alumno: {{ solicitud.alumno.nombre_apellido }}</small>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary px-3" data-bs-toggle="modal" data-bs-target="#modalDatosSolicitud">
+                                VER
+                            </button>
+                        </div>
+
+                        <div class="doc-item">
+                            <div>
+                                <strong class="d-block text-dark" style="font-size: 0.92rem;">Programa de {{ materia_solicitada.materia.nombre }}</strong>
+                                <small class="text-muted">Origen: {{ solicitud.institucion_origen }}</small>
+                            </div>
+                            {% if solicitud.programa_origen_pdf %}
+                                <a href="{{ solicitud.programa_origen_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-secondary px-3">VER</a>
+                            {% else %}
+                                <span class="badge bg-light text-muted border">No adjunto</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="doc-item">
+                            <div>
+                                <strong class="d-block text-dark" style="font-size: 0.92rem;">Certificado analítico</strong>
+                                <small class="text-muted">Constancia oficial de materias aprobadas</small>
+                            </div>
+                            {% if solicitud.analitico_pdf %}
+                                <a href="{{ solicitud.analitico_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-secondary px-3">VER</a>
+                            {% else %}
+                                <span class="badge bg-light text-muted border">No adjunto</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="doc-item">
+                            <div>
+                                <strong class="d-block text-dark" style="font-size: 0.92rem;">Programa institucional asignado</strong>
+                                <small class="text-muted">
+                                    {% if materia_solicitada.programa_institucional %}
+                                        Vigencia {{ materia_solicitada.programa_institucional.año_vigencia }}
+                                    {% else %}
+                                        Asignado por Jefe de Carrera
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% if materia_solicitada.programa_institucional and materia_solicitada.programa_institucional.archivo_pdf %}
+                                <a href="{{ materia_solicitada.programa_institucional.archivo_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-secondary px-3">VER</a>
+                            {% else %}
+                                <span class="badge bg-light text-muted border">Disponible en Secretaría</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA DERECHA: RESULTADO Y OBSERVACIONES -->
+                    <div class="col-12 col-lg-6 ps-lg-4">
+                        <h5 class="fw-bold text-dark mb-3">Resultado</h5>
+
+                        <!-- Selector APROBADA / RECHAZADA -->
+                        <div class="d-flex gap-2 mb-4">
+                            <div class="flex-fill">
+                                <input type="radio" class="btn-check" name="resultado" id="resAprobada" value="APROBADA" checked>
+                                <label class="btn-resultado btn-resultado-aprobada d-block text-center w-100" for="resAprobada">
+                                    APROBADA
+                                </label>
+                            </div>
+                            <div class="flex-fill">
+                                <input type="radio" class="btn-check" name="resultado" id="resRechazada" value="RECHAZADA">
+                                <label class="btn-resultado btn-resultado-rechazada d-block text-center w-100" for="resRechazada">
+                                    RECHAZADA
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Observaciones obligatorias -->
+                        <div class="mb-4">
+                            <label class="form-label">Observaciones obligatorias</label>
+                            <textarea name="observaciones" rows="5" class="form-control" placeholder="Los contenidos y la carga horaria son equivalentes." required>{{ materia_solicitada.fundamentacion_profesor|default:'' }}</textarea>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <a href="{% url 'profesor_inicio' %}" class="btn btn-outline-secondary px-4">
+                                CANCELAR
+                            </a>
+                            <button type="submit" class="btn btn-teal px-4">
+                                CONFIRMAR
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 pt-3 border-top text-muted" style="font-size: 0.82rem;">
+                    Al confirmar un cambio de estado, se enviará un email automático al alumno.
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<!-- MODAL: DATOS DE LA SOLICITUD -->
+<div class="modal fade" id="modalDatosSolicitud" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-dark">Datos de la solicitud #{{ solicitud.numero_tramite }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start">
+                <p class="mb-2"><strong>Alumno:</strong> {{ solicitud.alumno.nombre_apellido }} (DNI: {{ solicitud.alumno.dni }})</p>
+                <p class="mb-2"><strong>Institución de origen:</strong> {{ solicitud.institucion_origen }}</p>
+                <p class="mb-2"><strong>Carrera de origen:</strong> {{ solicitud.carrera_origen }}</p>
+                <p class="mb-2"><strong>Materia a homologar:</strong> {{ materia_solicitada.materia.nombre }}</p>
+                <p class="mb-0"><strong>Observaciones del alumno:</strong> {{ solicitud.observaciones_alumno|default:"Sin observaciones adicionales." }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-teal btn-sm" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}
