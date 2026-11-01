@@ -25,6 +25,13 @@ urlpatterns = [
     path('jefe-carrera/revisar-dictamen/<int:solicitud_id>/', views.jefe_revisar_dictamen, name='jefe_revisar_dictamen'),
     path('jefe-carrera/historial/', views.jefe_historial, name='jefe_historial'),
 
+    # Módulo Profesor Evaluador (CU005 y CU008)
+    path('profesor/', views.profesor_inicio, name='profesor_inicio'),
+    path('profesor/evaluar/<int:materia_solicitada_id>/', views.profesor_evaluar, name='profesor_evaluar'),
+    path('profesor/correcciones/', views.profesor_correcciones, name='profesor_correcciones'),
+    path('profesor/corregir/<int:materia_solicitada_id>/', views.profesor_corregir, name='profesor_corregir'),
+    path('profesor/historial/', views.profesor_historial, name='profesor_historial'),
+   
     # Activación de Cuenta
     path('activar-cuenta/', views.activar_cuenta, name='activar_cuenta'),
     path('verificar-codigo/', views.verificar_codigo, name='verificar_codigo'),

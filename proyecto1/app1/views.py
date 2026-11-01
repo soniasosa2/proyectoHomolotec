@@ -549,3 +549,159 @@ def jefe_historial(request):
         'estados_disponibles': SolicitudHomologacion.ESTADOS,
     }
     return render(request, 'app1/jefe_historial.html', contexto)
+# ========================================================
+# MÓDULO PROFESOR EVALUADOR (CU005, CU008)
+# ========================================================
+
+@login_required(login_url='index')
+def profesor_inicio(request):
+    if request.user.perfil.rol != 'PROFESOR':
+        return redirect('index')
+
+    perfil = request.user.perfil
+    mis_evaluaciones = MateriaSolicitada.objects.filter(profesor_evaluador=perfil)
+
+    # 1. Trámites pendientes de evaluar
+    por_evaluar = mis_evaluaciones.filter(
+        resultado_dictamen='PENDIENTE',
+        solicitud__estado__in=['PROFESOR_ASIGNADO', 'EN_EVALUACION']
+    )
+
+    # 2. Trámites devueltos para corrección por el Jefe de Carrera
+    para_corregir = mis_evaluaciones.filter(solicitud__estado='CORRECCION_SOLICITADA')
+
+    # 3. Dictámenes ya emitidos
+    dictamenes_enviados = mis_evaluaciones.exclude(resultado_dictamen='PENDIENTE')
+
+    contexto = {
+        'por_evaluar': por_evaluar,
+        'cant_por_evaluar': por_evaluar.count(),
+        'cant_para_corregir': para_corregir.count(),
+        'cant_enviados': dictamenes_enviados.count(),
+    }
+    return render(request, 'app1/profesor_inicio.html', contexto)
+
+
+@login_required(login_url='index')
+def profesor_evaluar(request, materia_solicitada_id):
+    if request.user.perfil.rol != 'PROFESOR':
+        return redirect('index')
+
+    materia_solicitada = get_object_or_404(
+        MateriaSolicitada, 
+        id=materia_solicitada_id, 
+        profesor_evaluador=request.user.perfil
+    )
+    solicitud = materia_solicitada.solicitud
+
+    if request.method == 'POST':
+        resultado = request.POST.get('resultado')
+        observaciones = request.POST.get('observaciones', '').strip()
+
+        if not observaciones:
+            messages.error(request, 'Las observaciones y fundamentación son obligatorias.')
+        else:
+            materia_solicitada.resultado_dictamen = resultado
+            materia_solicitada.fundamentacion_profesor = observaciones
+            materia_solicitada.save()
+
+            # La solicitud pasa a "Evaluación finalizada" para que la revise el Jefe de Carrera
+            solicitud.estado = 'EVALUACION_FINALIZADA'
+            solicitud.save()
+
+            messages.success(request, f'¡Dictamen registrado con éxito para {materia_solicitada.materia.nombre}! Se notificó al Jefe de Carrera.')
+            return redirect('profesor_inicio')
+
+    contexto = {
+        'materia_solicitada': materia_solicitada,
+        'solicitud': solicitud,
+    }
+    return render(request, 'app1/profesor_evaluar.html', contexto)
+
+
+@login_required(login_url='index')
+def profesor_correcciones(request):
+    if request.user.perfil.rol != 'PROFESOR':
+        return redirect('index')
+
+    perfil = request.user.perfil
+    correcciones = MateriaSolicitada.objects.filter(
+        profesor_evaluador=perfil,
+        solicitud__estado='CORRECCION_SOLICITADA'
+    ).order_by('-solicitud__fecha_actualizacion')
+
+    busqueda = request.GET.get('q', '').strip()
+    if busqueda:
+        correcciones = correcciones.filter(
+            Q(solicitud__numero_tramite__icontains=busqueda) |
+            Q(solicitud__alumno__nombre_apellido__icontains=busqueda) |
+            Q(materia__nombre__icontains=busqueda)
+        ).distinct()
+
+    contexto = {
+        'correcciones': correcciones,
+        'busqueda': busqueda,
+    }
+    return render(request, 'app1/profesor_correcciones.html', contexto)
+
+
+@login_required(login_url='index')
+def profesor_corregir(request, materia_solicitada_id):
+    if request.user.perfil.rol != 'PROFESOR':
+        return redirect('index')
+
+    materia_solicitada = get_object_or_404(
+        MateriaSolicitada, 
+        id=materia_solicitada_id, 
+        profesor_evaluador=request.user.perfil
+    )
+    solicitud = materia_solicitada.solicitud
+
+    if request.method == 'POST':
+        resultado = request.POST.get('resultado')
+        observaciones = request.POST.get('observaciones', '').strip()
+
+        if not observaciones:
+            messages.error(request, 'La fundamentación y respuesta a las observaciones son obligatorias.')
+        else:
+            materia_solicitada.resultado_dictamen = resultado
+            materia_solicitada.fundamentacion_profesor = observaciones
+            materia_solicitada.save()
+
+            # Al reenviar vuelve a revisión del Jefe de Carrera
+            solicitud.estado = 'EVALUACION_FINALIZADA'
+            solicitud.save()
+
+            messages.success(request, f'¡Dictamen corregido y reenviado al Jefe de Carrera!')
+            return redirect('profesor_inicio')
+
+    contexto = {
+        'materia_solicitada': materia_solicitada,
+        'solicitud': solicitud,
+    }
+    return render(request, 'app1/profesor_corregir.html', contexto)
+
+
+@login_required(login_url='index')
+def profesor_historial(request):
+    if request.user.perfil.rol != 'PROFESOR':
+        return redirect('index')
+
+    perfil = request.user.perfil
+    evaluaciones = MateriaSolicitada.objects.filter(
+        profesor_evaluador=perfil
+    ).exclude(resultado_dictamen='PENDIENTE').order_by('-solicitud__fecha_actualizacion')
+
+    busqueda = request.GET.get('q', '').strip()
+    if busqueda:
+        evaluaciones = evaluaciones.filter(
+            Q(solicitud__numero_tramite__icontains=busqueda) |
+            Q(solicitud__alumno__nombre_apellido__icontains=busqueda) |
+            Q(materia__nombre__icontains=busqueda)
+        ).distinct()
+
+    contexto = {
+        'evaluaciones': evaluaciones,
+        'busqueda': busqueda,
+    }
+    return render(request, 'app1/profesor_historial.html', contexto)

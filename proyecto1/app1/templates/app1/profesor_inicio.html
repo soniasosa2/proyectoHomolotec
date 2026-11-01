@@ -1,0 +1,216 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block titulo %}HomoloTec - Profesor - Inicio{% endblock titulo %}
+
+{% block usuario_header %}
+    <div class="text-end">
+        <span class="d-block fw-bold text-white" style="font-size: 0.9rem;">Profesor</span>
+        <a href="{% url 'cerrar_sesion' %}" class="text-white text-opacity-75 text-decoration-none" style="font-size: 0.8rem;">
+            Cerrar sesión
+        </a>
+    </div>
+{% endblock usuario_header %}
+
+{% block extra_css %}
+<style>
+    .sidebar-nav {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 10px 18px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+    .sidebar-link.active {
+        background-color: #e6f4f2;
+        color: #107c72;
+        font-weight: 700;
+    }
+    .card-metrica {
+        background-color: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .numero-metrica {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        padding: 10px 16px;
+        border-radius: 10px;
+    }
+    .metrica-teal { background-color: #e6f4f2; color: #107c72; }
+    .metrica-amarillo { background-color: #fef9c3; color: #a16207; }
+    .metrica-azul { background-color: #e0f2fe; color: #0284c7; }
+
+    .table-homolotec th {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        color: #64748b;
+        padding: 16px 14px;
+        border-bottom: 1px solid #e2e8f0 !important;
+        white-space: nowrap;
+    }
+    .table-homolotec td {
+        padding: 16px 14px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.92rem;
+    }
+    .table-homolotec tbody tr:hover {
+        background-color: #f8fafc;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block contenido %}
+<div class="row g-4">
+
+    <!-- MENÚ LATERAL DEL PROFESOR -->
+    <div class="col-12 col-lg-3">
+        <div class="sidebar-nav shadow-sm d-flex flex-row flex-lg-column gap-2 overflow-auto">
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link active">Inicio</a>
+            <a href="{% url 'profesor_inicio' %}" class="sidebar-link">Solicitudes asignadas</a>
+            <a href="{% url 'profesor_correcciones' %}" class="sidebar-link">Correcciones</a>
+            <a href="{% url 'profesor_historial' %}" class="sidebar-link">Historial</a>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="col-12 col-lg-9">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} py-2 mb-3" style="font-size: 0.9rem;" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="text-start mb-4">
+            <h2 class="fw-bold text-dark mb-1">Inicio del profesor</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                Consultá tus solicitudes asignadas, correcciones pendientes y evaluaciones realizadas.
+            </p>
+        </div>
+
+        <!-- 3 TARJETAS DE MÉTRICAS -->
+        <div class="row g-3 mb-4 text-start">
+            <div class="col-12 col-md-4">
+                <div class="card-metrica shadow-sm">
+                    <div class="numero-metrica metrica-teal">{{ cant_por_evaluar }}</div>
+                    <div>
+                        <span class="d-block fw-bold text-dark fs-6">Por evaluar</span>
+                        <small class="text-muted">Pendientes de dictamen</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div class="card-metrica shadow-sm">
+                    <div class="numero-metrica metrica-amarillo">{{ cant_para_corregir }}</div>
+                    <div>
+                        <span class="d-block fw-bold text-dark fs-6">Para corregir</span>
+                        <small class="text-muted">Devueltas por Jefe</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div class="card-metrica shadow-sm">
+                    <div class="numero-metrica metrica-azul">{{ cant_enviados }}</div>
+                    <div>
+                        <span class="d-block fw-bold text-dark fs-6">Dictámenes enviados</span>
+                        <small class="text-muted">Ya evaluadas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA: SOLICITUDES ASIGNADAS -->
+        <div class="card-homolotec shadow-sm p-4 text-start mb-4">
+            <div class="mb-3">
+                <h5 class="fw-bold text-dark mb-1">Solicitudes asignadas</h5>
+                <p class="text-muted small mb-0">Trámites que todavía requieren tu evaluación.</p>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-homolotec align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>TRÁMITE</th>
+                            <th>ALUMNO</th>
+                            <th>MATERIA</th>
+                            <th>ESTADO</th>
+                            <th class="text-end">ACCIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ms in por_evaluar %}
+                            <tr>
+                                <td class="fw-bold text-dark">{{ ms.solicitud.numero_tramite }}</td>
+                                <td>{{ ms.solicitud.alumno.nombre_apellido }}</td>
+                                <td>{{ ms.materia.nombre }}</td>
+                                <td>
+                                    <span class="badge-estado badge-recibida">
+                                        {{ ms.solicitud.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'profesor_evaluar' ms.id %}" class="btn btn-teal btn-sm px-3 py-1">
+                                        EVALUAR
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    No tenés solicitudes pendientes de evaluación en este momento.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CARTEL DE AVISO SI HAY CORRECCIONES PENDIENTES -->
+        {% if cant_para_corregir > 0 %}
+            <div class="card-homolotec shadow-sm p-4 text-start d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3" style="background-color: #fefce8; border-color: #fef08a;">
+                <div>
+                    <h6 class="fw-bold text-dark mb-1" style="color: #854d0e !important;">
+                        Tenés {{ cant_para_corregir }} dictamen con correcciones solicitadas.
+                    </h6>
+                    <small class="text-muted">Revisá las observaciones del Jefe de Carrera antes de reenviarlo.</small>
+                </div>
+                <div>
+                    <a href="{% url 'profesor_correcciones' %}" class="btn btn-teal px-4">
+                        VER CORRECCIONES
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock contenido %}
