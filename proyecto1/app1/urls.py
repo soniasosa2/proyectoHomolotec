@@ -2,7 +2,9 @@ from django.urls import path
 from app1 import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    
+    path('', views.landing, name='landing'),
+    path('login/', views.index, name='login'),
     path('cerrar-sesion/', views.cerrar_sesion, name='cerrar_sesion'),
     
     # Alumno
@@ -38,4 +40,8 @@ urlpatterns = [
     path('activar-cuenta/', views.activar_cuenta, name='activar_cuenta'),
     path('verificar-codigo/', views.verificar_codigo, name='verificar_codigo'),
     path('registro-exitoso/', views.registro_exitoso, name='registro_exitoso'),
+    
+        # Programas Académicos (CU009)
+    path('programas/', views.programas_listado, name='programas_listado'),
+    path('programas/cargar/', views.programa_cargar, name='programa_cargar'),
 ]

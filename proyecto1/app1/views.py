@@ -6,7 +6,28 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q
-from .models import PerfilUsuario, SolicitudHomologacion, Materia, MateriaSolicitada, ProgramaAcademico
+from .models import PerfilUsuario, SolicitudHomologacion, Materia, MateriaSolicitada, Carrera, ProgramaAcademico
+
+# ========================================================
+# PÁGINA PÚBLICA DE PRESENTACIÓN / LANDING PAGE
+# ========================================================
+def landing(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        instituto = request.POST.get('instituto', '').strip()
+        email = request.POST.get('email', '').strip()
+
+        # Mostramos en consola el contacto recibido
+        print("==========================================")
+        print("📩 NUEVA CONSULTA DE CONTRATACIÓN HOMOLOTEC:")
+        print(f"Contacto: {nombre} ({email}) - Instituto: {instituto}")
+        print("==========================================")
+
+        messages.success(request, f'¡Muchas gracias {nombre}! Recibimos tu consulta sobre "{instituto}". Nos comunicaremos a la brevedad.')
+        return redirect('landing')
+
+    return render(request, 'app1/landing.html')
+
 
 # ========================================================
 # PANTALLA 1: INICIAR SESIÓN (LOGIN INTELIGENTE POR ROL)
@@ -769,3 +790,62 @@ def secretaria_registrar_resolucion(request, solicitud_id):
         'es_aprobada': es_aprobada,
     }
     return render(request, 'app1/secretaria_registrar_resolucion.html', contexto)
+
+# ========================================================
+# CU009: GESTIÓN DE PROGRAMAS ACADÉMICOS INSTITUCIONALES
+# ========================================================
+@login_required(login_url='index')
+def programas_listado(request):
+    # Solo permitido para Secretaría y Jefe de Carrera (según actores de CU009)
+    if request.user.perfil.rol not in ['SECRETARIA', 'JEFE_CARRERA']:
+        return redirect('index')
+
+    programas = ProgramaAcademico.objects.select_related('materia', 'materia__carrera').order_by('materia__nombre', '-año_vigencia')
+
+    # Si es Jefe de Carrera con carrera asignada, mostramos preferentemente los de su carrera
+    perfil = request.user.perfil
+    if perfil.rol == 'JEFE_CARRERA' and perfil.carrera:
+        programas = programas.filter(materia__carrera=perfil.carrera)
+
+    contexto = {
+        'programas': programas,
+    }
+    return render(request, 'app1/programas_listado.html', contexto)
+
+
+@login_required(login_url='index')
+def programa_cargar(request):
+    if request.user.perfil.rol not in ['SECRETARIA', 'JEFE_CARRERA']:
+        return redirect('index')
+
+    perfil = request.user.perfil
+    materias = Materia.objects.select_related('carrera').order_by('nombre')
+    if perfil.rol == 'JEFE_CARRERA' and perfil.carrera:
+        materias = materias.filter(carrera=perfil.carrera)
+
+    año_actual = datetime.datetime.now().year
+
+    if request.method == 'POST':
+        materia_id = request.POST.get('materia_id')
+        año_vigencia = request.POST.get('año_vigencia')
+        archivo_pdf = request.FILES.get('archivo_pdf')
+
+        if not materia_id or not año_vigencia or not archivo_pdf:
+            messages.error(request, 'Por favor completá todos los campos obligatorios.')
+        elif not archivo_pdf.name.lower().endswith('.pdf'):
+            messages.error(request, 'El archivo adjunto debe ser en formato PDF.')
+        else:
+            materia = get_object_or_404(Materia, id=materia_id)
+            programa = ProgramaAcademico.objects.create(
+                materia=materia,
+                año_vigencia=int(año_vigencia),
+                archivo_pdf=archivo_pdf
+            )
+            messages.success(request, f'¡Programa de "{materia.nombre}" (Vigencia {año_vigencia}) guardado con éxito!')
+            return redirect('programas_listado')
+
+    contexto = {
+        'materias': materias,
+        'año_actual': año_actual,
+    }
+    return render(request, 'app1/programa_cargar.html', contexto)

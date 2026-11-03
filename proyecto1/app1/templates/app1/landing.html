@@ -1,0 +1,335 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomoloTec - Conectando trayectos académicos</title>
+
+    <!-- Bootstrap 5 y Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Estilos de HomoloTec -->
+    <link rel="stylesheet" href="{% static 'app1/css/style.css' %}">
+
+    <style>
+        /* Navegación pública */
+        .navbar-public {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 0;
+        }
+
+        /* Sección Hero */
+        .hero-section {
+            background: linear-gradient(180deg, #ffffff 0%, #f4f6f8 100%);
+            padding: 70px 0 60px 0;
+        }
+
+        /* Tarjetas de Beneficios */
+        .feature-card {
+            background-color: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            padding: 30px 24px;
+            height: 100%;
+            transition: all 0.25s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+            border-color: #107c72;
+        }
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background-color: #e6f4f2;
+            color: #107c72;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 18px;
+        }
+
+        /* Tarjetas de Roles */
+        .rol-pill {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            height: 100%;
+        }
+        .rol-badge {
+            background-color: #1b263b;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Formulario de Contacto */
+        .contacto-section {
+            background-color: #ffffff;
+            padding: 70px 0;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. BARRA DE NAVEGACIÓN SUPERIOR -->
+    <nav class="navbar-public sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            
+            <!-- Logo HomoloTec -->
+            <a href="{% url 'landing' %}" class="d-flex align-items-center text-decoration-none">
+                <img src="{% static 'app1/images/logo.png' %}" alt="Logo HomoloTec" height="42">
+            </a>
+
+            <!-- Enlaces del menú y botón Acceso -->
+            <div class="d-flex align-items-center gap-4">
+                <div class="d-none d-md-flex align-items-center gap-3">
+                    <a href="#solucion" class="text-secondary text-decoration-none fw-medium" style="font-size: 0.92rem;">La Solución</a>
+                    <a href="#actores" class="text-secondary text-decoration-none fw-medium" style="font-size: 0.92rem;">Actores</a>
+                    <a href="#contacto" class="text-secondary text-decoration-none fw-medium" style="font-size: 0.92rem;">Contacto</a>
+                </div>
+                
+                <a href="{% url 'login' %}" class="btn btn-teal px-4 py-2 fw-bold text-nowrap">
+                    ACCESO AL SISTEMA
+                </a>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- 2. SECCIÓN HERO (PORTADA) -->
+    <header class="hero-section text-center">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-9">
+                    
+                    <span class="badge px-3 py-2 rounded-pill mb-3 fw-bold" style="background-color: #e6f4f2; color: #107c72; font-size: 0.82rem; letter-spacing: 0.5px;">
+                        INNOVACIÓN EN GESTIÓN ACADÉMICA
+                    </span>
+
+                    <h1 class="fw-bold text-dark mb-3" style="font-size: 2.8rem; line-height: 1.2;">
+                        Optimizá y digitalizá el proceso de <span style="color: #107c72;">homologaciones</span> en tu institución.
+                    </h1>
+
+                    <p class="text-muted fs-5 mb-4 mx-auto" style="max-width: 720px; line-height: 1.6;">
+                        HomoloTec conecta estudiantes, secretarías académicas y docentes en una plataforma centralizada, ágil y transparente.
+                    </p>
+
+                    <div class="d-flex flex-wrap justify-content-center gap-3 mb-5">
+                        <a href="{% url 'login' %}" class="btn btn-teal px-4 py-3 fw-bold fs-6">
+                            Ingresar al Sistema <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                        <a href="#contacto" class="btn btn-outline-teal px-4 py-3 fw-bold fs-6">
+                            Solicitar demostración
+                        </a>
+                    </div>
+
+                    <!-- Insignia del Instituto Piloto -->
+                    <div class="p-3 rounded-3 d-inline-flex align-items-center gap-2 border bg-white shadow-sm" style="font-size: 0.88rem;">
+                        <span class="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center fw-bold" style="width: 24px; height: 24px; font-size: 0.75rem;">H</span>
+                        <span class="text-muted">Implementado en el <strong>Instituto Superior N.º 25 "Dr. Beppo Levi"</strong></span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. SECCIÓN BENEFICIOS -->
+    <section id="solucion" class="py-5" style="background-color: #f4f6f8;">
+        <div class="container py-4">
+            
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-dark">¿Por qué implementar HomoloTec?</h2>
+                <p class="text-muted">Dejá atrás las carpetas dispersas, las demoras y la pérdida de documentación.</p>
+            </div>
+
+            <div class="row g-4">
+                
+                <div class="col-12 col-md-4">
+                    <div class="feature-card shadow-sm text-start">
+                        <div class="feature-icon">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Trazabilidad en tiempo real</h5>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">
+                            Línea de tiempo paso a paso para que alumnos y autoridades sepan en qué instancia exacta está cada trámite.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="feature-card shadow-sm text-start">
+                        <div class="feature-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Seguridad y control de roles</h5>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">
+                            Cuentas verificadas institucionalmente, contraseñas encriptadas y permisos segmentados según la función de cada usuario.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="feature-card shadow-sm text-start">
+                        <div class="feature-icon">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Programas centralizados</h5>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">
+                            Repositorio digital de programas académicos institucionales para facilitar el cotejo y dictamen de los profesores.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 4. SECCIÓN ACTORES (CÓMO FUNCIONA) -->
+    <section id="actores" class="py-5 bg-white">
+        <div class="container py-4">
+            
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-dark">Diseñado para cada integrante del proceso</h2>
+                <p class="text-muted">Un flujo integrado donde cada actor cumple su rol de forma simple.</p>
+            </div>
+
+            <div class="row g-4">
+                
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <div class="rol-pill shadow-sm">
+                        <span class="rol-badge">ESTUDIANTES</span>
+                        <h6 class="fw-bold text-dark mb-2">Autogestión total</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem; line-height: 1.5;">
+                            Inician trámites online, eligen materias y reciben avisos de cada actualización.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <div class="rol-pill shadow-sm">
+                        <span class="rol-badge">SECRETARÍA</span>
+                        <h6 class="fw-bold text-dark mb-2">Recepción y control</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem; line-height: 1.5;">
+                            Verificación de papeles con checklist digital y emisión de la resolución formal.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <div class="rol-pill shadow-sm">
+                        <span class="rol-badge">JEFE DE CARRERA</span>
+                        <h6 class="fw-bold text-dark mb-2">Asignación académica</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem; line-height: 1.5;">
+                            Asigna docentes evaluadores por materia y revisa los dictámenes antes del cierre.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <div class="rol-pill shadow-sm">
+                        <span class="rol-badge">PROFESORES</span>
+                        <h6 class="fw-bold text-dark mb-2">Dictamen ágil</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem; line-height: 1.5;">
+                            Comparan programas oficiales y emiten dictámenes fundamentados en un par de clics.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 5. SECCIÓN CONTACTO / CONTRATACIONES -->
+    <section id="contacto" class="contacto-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-8">
+                    
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold text-dark">¿Querés implementar HomoloTec en tu institución?</h2>
+                        <p class="text-muted">Completá el formulario y nos pondremos en contacto para coordinar una demo personalizada.</p>
+                    </div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-success py-3 mb-4 text-center fw-semibold" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="card-homolotec shadow-sm p-4 p-md-5 text-start">
+                        <form method="POST" action="{% url 'landing' %}">
+                            {% csrf_token %}
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nombre y apellido *</label>
+                                    <input type="text" name="nombre" class="form-control" placeholder="Ej.: Lic. Martín Gómez" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Correo electrónico institucional *</label>
+                                    <input type="email" name="email" class="form-control" placeholder="contacto@instituto.edu.ar" required>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Institución educativa *</label>
+                                    <input type="text" name="instituto" class="form-control" placeholder="Ej.: Instituto Superior N.º 25" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Teléfono de contacto</label>
+                                    <input type="tel" name="telefono" class="form-control" placeholder="Ej.: +54 9 341 ...">
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Mensaje / Consulta *</label>
+                                <textarea name="mensaje" rows="4" class="form-control" placeholder="Contanos sobre tu institución y tus necesidades de gestión de homologaciones..." required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-teal w-100 py-3 fw-bold fs-6">
+                                ENVIAR CONSULTA
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. FOOTER -->
+    <footer class="py-4 text-center border-top bg-white" style="font-size: 0.85rem; color: #64748b;">
+        <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+            <div>
+                <strong>HomoloTec</strong> © 2026 — Proyecto Final de Tecnicatura Superior en Desarrollo de Software
+            </div>
+            <div>
+                Desarrollado para el Instituto Superior N.º 25 "Dr. Beppo Levi"
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
