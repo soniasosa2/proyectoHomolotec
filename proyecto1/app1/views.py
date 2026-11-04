@@ -70,8 +70,11 @@ def index(request):
 
 
 def cerrar_sesion(request):
-    logout(request)
-    return redirect('index')
+    try:
+        logout(request)
+        return redirect('landing')
+    except:  
+        return redirect('index')
 
 
 # ========================================================
@@ -677,11 +680,9 @@ def profesor_corregir(request, materia_solicitada_id):
         profesor_evaluador=request.user.perfil
     )
     solicitud = materia_solicitada.solicitud
-
     if request.method == 'POST':
         resultado = request.POST.get('resultado')
         observaciones = request.POST.get('observaciones', '').strip()
-
         if not observaciones:
             messages.error(request, 'La fundamentación y respuesta a las observaciones son obligatorias.')
         else:
@@ -700,7 +701,7 @@ def profesor_corregir(request, materia_solicitada_id):
         'materia_solicitada': materia_solicitada,
         'solicitud': solicitud,
     }
-    return render(request, 'app1/profesor_corregir.html', contexto)
+    return render(request, 'app1/profesor_correcciones.html', contexto)
 
 
 @login_required(login_url='index')
